@@ -37,6 +37,7 @@ from .models import (
 
 APP_TITLE = os.getenv("APP_TITLE", "Team Task Manager API")
 
+
 def parse_cors_origins(raw: str) -> List[str]:
     raw = raw.strip()
     if raw == "*":
@@ -49,7 +50,22 @@ def parse_cors_origins(raw: str) -> List[str]:
     return origins or ["*"]
 
 
+def parse_bool_env(value: str, default: bool = False) -> bool:
+    normalized = value.strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
 CORS_ORIGINS = parse_cors_origins(os.getenv("CORS_ORIGINS", "*"))
+CORS_ALLOW_CREDENTIALS = parse_bool_env(os.getenv("CORS_ALLOW_CREDENTIALS", "false"))
+CORS_ALLOW_ORIGIN_REGEX = os.getenv("CORS_ALLOW_ORIGIN_REGEX", "").strip() or None
+
+# Browsers reject credentialed CORS responses when allow-origin is "*".
+if "*" in CORS_ORIGINS and CORS_ALLOW_CREDENTIALS:
+    CORS_ALLOW_CREDENTIALS = False
 
 app = FastAPI(title=APP_TITLE)
 
@@ -66,7 +82,8 @@ async def normalize_api_prefix(request: Request, call_next):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
-    allow_credentials=True,
+    allow_origin_regex=CORS_ALLOW_ORIGIN_REGEX,
+    allow_credentials=CORS_ALLOW_CREDENTIALS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
