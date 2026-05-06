@@ -62,12 +62,10 @@ def parse_bool_env(value: str, default: bool = False) -> bool:
 
 
 CORS_ORIGINS = parse_cors_origins(os.getenv("CORS_ORIGINS", "*"))
-CORS_ALLOW_CREDENTIALS = parse_bool_env(os.getenv("CORS_ALLOW_CREDENTIALS", "false"))
+# This app sends JWTs in the Authorization header, not cookies. Keep credentials
+# disabled so wildcard origins work correctly in every browser and on Vercel.
+CORS_ALLOW_CREDENTIALS = False
 CORS_ALLOW_ORIGIN_REGEX = os.getenv("CORS_ALLOW_ORIGIN_REGEX", "").strip() or None
-
-# Browsers reject credentialed CORS responses when allow-origin is "*".
-if "*" in CORS_ORIGINS and CORS_ALLOW_CREDENTIALS:
-    CORS_ALLOW_CREDENTIALS = False
 
 app = FastAPI(title=APP_TITLE)
 
