@@ -5,8 +5,10 @@ from typing import Any, Dict, List
 from bson import ObjectId
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo import ReturnDocument
+from pymongo.errors import PyMongoError
 
 from .auth import (
     authenticate_user,
@@ -68,6 +70,16 @@ if "*" in CORS_ORIGINS and CORS_ALLOW_CREDENTIALS:
     CORS_ALLOW_CREDENTIALS = False
 
 app = FastAPI(title=APP_TITLE)
+
+
+@app.exception_handler(PyMongoError)
+async def mongo_exception_handler(_: Request, exc: PyMongoError):
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={
+            "detail": "Database connection failed. Check MONGODB_URL and MongoDB Atlas network access."
+        },
+    )
 
 
 @app.middleware("http")
