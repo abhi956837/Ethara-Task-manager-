@@ -185,7 +185,7 @@ async def assert_project_access(
 @app.on_event("startup")
 async def startup_event() -> None:
     await connect_to_mongo()
-    db = get_database()
+    db = await get_database()
     await ensure_user_indexes(db)
     await ensure_task_indexes(db)
 

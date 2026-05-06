@@ -16,6 +16,9 @@ database: Optional[AsyncIOMotorDatabase] = None
 async def connect_to_mongo() -> None:
     global client, database
 
+    if database is not None:
+        return
+
     client = AsyncIOMotorClient(MONGODB_URL)
     database = client[DB_NAME]
 
@@ -29,7 +32,9 @@ async def close_mongo_connection() -> None:
     database = None
 
 
-def get_database() -> AsyncIOMotorDatabase:
+async def get_database() -> AsyncIOMotorDatabase:
+    if database is None:
+        await connect_to_mongo()
     if database is None:
         raise RuntimeError("MongoDB is not initialized.")
     return database
