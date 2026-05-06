@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, List
 
 from bson import ObjectId
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from pymongo import ReturnDocument
@@ -52,6 +52,16 @@ def parse_cors_origins(raw: str) -> List[str]:
 CORS_ORIGINS = parse_cors_origins(os.getenv("CORS_ORIGINS", "*"))
 
 app = FastAPI(title=APP_TITLE)
+
+
+@app.middleware("http")
+async def normalize_api_prefix(request: Request, call_next):
+    path = request.scope.get("path", "")
+    if path == "/api":
+        request.scope["path"] = "/"
+    elif path.startswith("/api/"):
+        request.scope["path"] = path[4:] or "/"
+    return await call_next(request)
 
 app.add_middleware(
     CORSMiddleware,
@@ -168,7 +178,7 @@ async def shutdown_event() -> None:
     await close_mongo_connection()
 
 
-@app.get("/api/health")
+@app.get("/health")
 async def health() -> Dict[str, str]:
     return {"status": "ok"}
 

@@ -34,7 +34,7 @@ Optional:
 
 ### Frontend (`frontend/.env`)
 Required:
-- `VITE_API_BASE_URL` (e.g. `http://localhost:8000`)
+- `VITE_API_BASE_URL` (e.g. `http://localhost:8000` for local dev, `/api` for Vercel)
 
 ## Local Run
 
@@ -74,6 +74,23 @@ Open:
   - Start: `npm run preview -- --host 0.0.0.0 --port $PORT`
 - Set `VITE_API_BASE_URL` to backend public URL
 - Set backend `CORS_ORIGINS` to frontend public URL
+
+## Vercel Deployment (Monorepo with Frontend + Backend)
+This repository is preconfigured for Vercel multi-service deploy via root `vercel.json`:
+- Frontend (Vite) at `/`
+- Backend (FastAPI) at `/api`
+
+### Steps
+1. Import the repository in Vercel
+2. Confirm it detects two services from `vercel.json`
+3. Set environment variables:
+   - Backend: `MONGODB_URL`, `JWT_SECRET_KEY`, optional `DB_NAME`, `CORS_ORIGINS`, `ADMIN_SIGNUP_CODE`
+   - Frontend: `VITE_API_BASE_URL=/api`
+4. Deploy
+
+Notes:
+- Backend also exposes `backend/main.py` for Vercel FastAPI entrypoint resolution
+- API calls from frontend default to `/api` in production
 
 ## License
 For educational / assignment use.
